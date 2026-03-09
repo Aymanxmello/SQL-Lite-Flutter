@@ -1,120 +1,213 @@
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const ContactsApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class ContactsApp extends StatelessWidget {
+  const ContactsApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Contacts',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF6750A4),
+          brightness: Brightness.light,
+        ),
+        useMaterial3: true,
+          fontFamily: 'Roboto',
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const ContactsHomePage(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+// ─── Model ───────────────────────────────────────────────────────────────────
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
+class Contact {
+  final String name;
+  final String phone;
+  const Contact({required this.name, required this.phone});
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+// ─── Home Page ────────────────────────────────────────────────────────────────
 
-  void _incrementCounter() {
+class ContactsHomePage extends StatefulWidget {
+  const ContactsHomePage({super.key});
+
+  @override
+  State<ContactsHomePage> createState() => _ContactsHomePageState();
+}
+
+class _ContactsHomePageState extends State<ContactsHomePage> {
+  final List<Contact> _contacts = [
+    const Contact(name: 'Alice Martin', phone: '+1 555-0101'),
+    const Contact(name: 'Bob Johnson', phone: '+1 555-0102'),
+    const Contact(name: 'Carol White', phone: '+1 555-0103'),
+    const Contact(name: 'David Brown', phone: '+1 555-0104'),
+    const Contact(name: 'Eva Green', phone: '+1 555-0105'),
+  ];
+
+  void _addContact(String name, String phone) {
     setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
+      _contacts.add(Contact(name: name, phone: phone));
+      _contacts.sort((a, b) => a.name.compareTo(b.name));
     });
+  }
+
+  void _showAddContactDialog() {
+    final nameController = TextEditingController();
+    final phoneController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('New Contact'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: nameController,
+              decoration: const InputDecoration(
+                labelText: 'Name',
+                prefixIcon: Icon(Icons.person_outline),
+                border: OutlineInputBorder(),
+              ),
+              textCapitalization: TextCapitalization.words,
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: phoneController,
+              decoration: const InputDecoration(
+                labelText: 'Phone number',
+                prefixIcon: Icon(Icons.phone_outlined),
+                border: OutlineInputBorder(),
+              ),
+              keyboardType: TextInputType.phone,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              if (nameController.text.trim().isNotEmpty &&
+                  phoneController.text.trim().isNotEmpty) {
+                _addContact(
+                  nameController.text.trim(),
+                  phoneController.text.trim(),
+                );
+                Navigator.pop(context);
+              }
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Color _avatarColor(String name) {
+    final colors = [
+      const Color(0xFF6750A4),
+      const Color(0xFF7965AF),
+      const Color(0xFF0061A4),
+      const Color(0xFF006E1C),
+      const Color(0xFF984061),
+      const Color(0xFF8B4513),
+      const Color(0xFF006B5E),
+    ];
+    return colors[name.codeUnitAt(0) % colors.length];
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
+    final scheme = Theme.of(context).colorScheme;
+
     return Scaffold(
+      // ── AppBar (Scaffold title) ──────────────────────────────────────────
       appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: .center,
-          children: [
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
+        backgroundColor: scheme.surface,
+        surfaceTintColor: scheme.surfaceTint,
+        title: const Text(
+          'Contacts',
+          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 22),
         ),
+        centerTitle: false,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.search),
+            tooltip: 'Search',
+            onPressed: () {},
+          ),
+          IconButton(
+            icon: const Icon(Icons.more_vert),
+            tooltip: 'More options',
+            onPressed: () {},
+          ),
+        ],
       ),
+
+      // ── Body: RecyclerView-style ListView ────────────────────────────────
+      body: _contacts.isEmpty
+          ? Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.contacts_outlined,
+                      size: 72, color: scheme.onSurfaceVariant),
+                  const SizedBox(height: 16),
+                  Text('No contacts yet',
+                      style: TextStyle(color: scheme.onSurfaceVariant)),
+                ],
+              ),
+            )
+          : ListView.builder(
+              itemCount: _contacts.length,
+              itemBuilder: (context, index) {
+                final contact = _contacts[index];
+                final initials = contact.name
+                    .split(' ')
+                    .where((w) => w.isNotEmpty)
+                    .take(2)
+                    .map((w) => w[0].toUpperCase())
+                    .join();
+
+                return ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: _avatarColor(contact.name),
+                    child: Text(
+                      initials,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  title: Text(
+                    contact.name,
+                    style: const TextStyle(fontWeight: FontWeight.w500),
+                  ),
+                  subtitle: Text(contact.phone),
+                  trailing: IconButton(
+                    icon: Icon(Icons.phone, color: scheme.primary),
+                    onPressed: () {},
+                  ),
+                  onTap: () {},
+                );
+              },
+            ),
+
+      // ── FAB with + icon ──────────────────────────────────────────────────
       floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
+        onPressed: _showAddContactDialog,
+        tooltip: 'Add Contact',
         child: const Icon(Icons.add),
       ),
     );
